@@ -24,7 +24,19 @@ func Seed() []Rec {
 }
 
 func AfterWrite(getMin func() (string, error), setMin func(string) error, body string) error {
-	return nil
+	tray := parseTray(body)
+	n := trayNumber(tray)
+	if n < 0 {
+		return fmt.Errorf("tray sequence missing in %q", body)
+	}
+	cur, err := getMin()
+	if err == nil && strings.TrimSpace(cur) != "" {
+		old, conv := strconv.Atoi(strings.TrimSpace(cur))
+		if conv == nil && n < old {
+			return fmt.Errorf("tray sequence %d < last committed %d", n, old)
+		}
+	}
+	return setMin(strconv.Itoa(n))
 }
 
 func parseTray(body string) string {
